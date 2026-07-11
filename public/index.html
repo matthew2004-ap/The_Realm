@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="The Realm Campus Operations dashboard for scheduling arrivals, pickup, delivery, lost and found, and hostel maintenance."
+    />
+    <title>The Realm Campus Operations</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="script.js"></script>
+  </head>
+  <body>
+    <div class="page-glow page-glow-one" aria-hidden="true"></div>
+    <div class="page-glow page-glow-two" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>
+          <strong>The Realm</strong>
+          <small>Campus Operations</small>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Primary">
+        <a href="#arrivals">Arrivals</a>
+        <a href="#gate-dates">Gate Dates</a>
+        <a href="#lost-found">Lost & Found</a>
+        <a href="#hostel-watch">Hostel Watch</a>
+      </nav>
+
+      <div class="auth-bar" id="authBar">
+        <button class="button button-secondary button-sm" id="loginBtn" type="button">Sign in</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">THE REALM</p>
+          <h1>A calmer way to manage student goods, delivery, and hostel issues.</h1>
+          <p class="hero-text">
+            Plan the arrival of goods before they reach campus, show students what is ready for pickup,
+            offer paid delivery when needed, and keep lost items plus hostel repairs visible in one place.
+          </p>
+
+          <div class="hero-actions">
+            <a class="button button-primary" href="#arrivals">Register arrival</a>
+            <a class="button button-secondary" href="#lost-found">Report missing item</a>
+          </div>
+
+          <div class="hero-tags" aria-label="Key benefits">
+            <span>Arrival planning</span>
+            <span>Pickup alerts</span>
+            <span>Delivery fees</span>
+            <span>Lost items</span>
+            <span>Hostel issues</span>
+          </div>
+        </div>
+
+        <aside class="hero-panel">
+          <div class="panel-stat">
+            <span>Incoming goods</span>
+            <strong id="heroIncoming">0</strong>
+          </div>
+          <div class="panel-stat">
+            <span>Ready to collect</span>
+            <strong id="heroReady">0</strong>
+          </div>
+          <div class="panel-stat">
+            <span>Urgent hostel work</span>
+            <strong id="heroUrgent">0</strong>
+          </div>
+          <div class="panel-note" id="gateWindowNote">
+            <p>Official gate window</p>
+            <strong id="gateWindowTitle">Loading schedule...</strong>
+            <span id="gateWindowTime"></span>
+          </div>
+        </aside>
+      </section>
+
+      <section class="stats-grid" aria-label="Live summary">
+        <article class="stat-card">
+          <span>Scheduled arrivals</span>
+          <strong id="statArrivals">0</strong>
+          <small>Goods with confirmed dates and student details.</small>
+        </article>
+        <article class="stat-card">
+          <span>Pending pickup</span>
+          <strong id="statPickup">0</strong>
+          <small>Items ready for students to collect at the office.</small>
+        </article>
+        <article class="stat-card">
+          <span>Delivery requests</span>
+          <strong id="statDelivery">0</strong>
+          <small>Orders that need hostel or door delivery with extra charge.</small>
+        </article>
+        <article class="stat-card">
+          <span>Open reports</span>
+          <strong id="statReports">0</strong>
+          <small>Lost items and hostel maintenance issues waiting on action.</small>
+        </article>
+      </section>
+
+      <section class="content-grid" id="arrivals">
+        <article class="panel form-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Arrival Desk</p>
+            <h2>Register goods before they reach campus.</h2>
+            <p>
+              Students can tell the council when an order is coming, how many items are expected,
+              and whether they want pickup or delivery.
+            </p>
+          </div>
+
+          <form id="arrivalForm" class="stacked-form">
+            <div class="form-row">
+              <label>
+                Student name
+                <input name="studentName" type="text" placeholder="e.g. Adaeze Okafor" required />
+              </label>
+              <label>
+                Registration number
+                <input name="regNo" type="text" placeholder="e.g. UJ/23/1148" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Goods or order
+                <input name="itemName" type="text" placeholder="e.g. Laptop accessories" required />
+              </label>
+              <label>
+                Quantity
+                <input name="quantity" type="number" min="1" value="1" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Expected date
+                <input name="eta" type="date" required />
+              </label>
+              <label>
+                Contact
+                <input name="phone" type="tel" placeholder="e.g. 0803 123 4567" required />
+              </label>
+            </div>
+            <label class="hostel-field hidden" id="hostelField">
+              Hostel for delivery
+              <input name="hostel" type="text" placeholder="e.g. Hostel B, Room 14" />
+            </label>
+            <label>
+              Arrival note
+              <textarea
+                name="note"
+                rows="4"
+                placeholder="Share courier name, tracking info, or anything the council should know."
+                required
+              ></textarea>
+            </label>
+
+            <div class="choice-group" role="radiogroup" aria-label="Pickup or delivery">
+              <label class="choice-card">
+                <input type="radio" name="fulfillment" value="pickup" checked />
+                <span>Pickup at office</span>
+                <small>No extra cost. Student collects goods.</small>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="fulfillment" value="delivery" />
+                <span>Deliver to hostel</span>
+                <small>Extra charge applies based on destination.</small>
+              </label>
+            </div>
+
+            <button class="button button-primary" type="submit">Save arrival</button>
+            <p class="form-feedback" id="arrivalFeedback" aria-live="polite"></p>
+          </form>
+        </article>
+
+        <article class="panel queue-panel">
+          <div class="section-heading compact">
+            <p class="eyebrow">Council View</p>
+            <h2>See what is coming in and when.</h2>
+            <p>
+              The council can scan scheduled arrivals, sort them by status, and spot delivery jobs quickly.
+            </p>
+          </div>
+
+          <div class="filter-bar" role="tablist" aria-label="Arrival filters">
+            <button class="chip is-active" data-filter="all" type="button">All</button>
+            <button class="chip" data-filter="pickup" type="button">Pickup</button>
+            <button class="chip" data-filter="delivery" type="button">Delivery</button>
+            <button class="chip" data-filter="soon" type="button">Arriving soon</button>
+            <button class="chip" data-filter="ready" type="button">Ready</button>
+          </div>
+
+          <div id="arrivalList" class="card-stack"></div>
+        </article>
+      </section>
+
+      <section class="timeline-panel" id="gate-dates">
+        <div class="section-heading">
+          <p class="eyebrow">Official Gate Dates</p>
+          <h2>A fixed schedule keeps the office calm and predictable.</h2>
+          <p>
+            The council can set approved gate dates so students know exactly when goods can be received.
+          </p>
+        </div>
+
+        <div class="timeline-grid" id="gateDatesList"></div>
+
+        <form id="gateForm" class="stacked-form council-only hidden">
+          <div class="form-row">
+            <label>
+              Day
+              <input name="dayName" type="text" placeholder="e.g. Tuesday" required />
+            </label>
+            <label>
+              Title
+              <input name="title" type="text" placeholder="e.g. Gate intake 8 AM - 1 PM" required />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              Start time
+              <input name="startTime" type="time" required />
+            </label>
+            <label>
+              End time
+              <input name="endTime" type="time" required />
+            </label>
+          </div>
+          <label>
+            Description
+            <textarea name="description" rows="3" placeholder="What happens on this gate day?" required></textarea>
+          </label>
+          <button class="button button-primary" type="submit">Add gate date</button>
+          <p class="form-feedback" id="gateFeedback" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="content-grid" id="lost-found">
+        <article class="panel form-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Lost & Found</p>
+            <h2>Make missing items visible, searchable, and easier to return.</h2>
+            <p>
+              Students can report missing items, and the council can publish found items with a simple proof step.
+            </p>
+          </div>
+
+          <form id="lostForm" class="stacked-form">
+            <div class="form-row">
+              <label>
+                Item name
+                <input name="itemName" type="text" placeholder="e.g. Blue water bottle" required />
+              </label>
+              <label>
+                Last seen at
+                <input name="lastSeen" type="text" placeholder="e.g. Hostel C corridor" required />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Student contact
+                <input name="contact" type="text" placeholder="Phone or email" required />
+              </label>
+              <label>
+                Proof of ownership
+                <input name="proof" type="text" placeholder="e.g. sticker, engraving, receipt" required />
+              </label>
+            </div>
+            <label>
+              Description
+              <textarea
+                name="description"
+                rows="4"
+                placeholder="Add color, brand, condition, and any detail that helps identify the item."
+                required
+              ></textarea>
+            </label>
+
+            <button class="button button-primary" type="submit">Publish missing item</button>
+            <p class="form-feedback" id="lostFeedback" aria-live="polite"></p>
+          </form>
+        </article>
+
+        <article class="panel queue-panel">
+          <div class="section-heading compact">
+            <p class="eyebrow">Find Board</p>
+            <h2>Students can search what has been found.</h2>
+            <p>Search the board, then verify ownership before a handover is approved.</p>
+          </div>
+
+          <div class="search-row">
+            <input id="lostSearch" type="search" placeholder="Search items, places, or notes" />
+          </div>
+
+          <div class="filter-bar" role="tablist" aria-label="Found item filters">
+            <button class="chip is-active" data-lost-filter="all" type="button">All</button>
+            <button class="chip" data-lost-filter="missing" type="button">Missing</button>
+            <button class="chip" data-lost-filter="found" type="button">Found</button>
+            <button class="chip" data-lost-filter="claimed" type="button">Claimed</button>
+          </div>
+
+          <div id="lostList" class="card-stack"></div>
+        </article>
+      </section>
+
+      <section class="content-grid" id="hostel-watch">
+        <article class="panel form-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Hostel Watch</p>
+            <h2>Keep track of urgent hostel work in one queue.</h2>
+            <p>
+              Carpentry, electrical problems, water leaks, and registration concerns can all be logged and sorted.
+            </p>
+          </div>
+
+          <form id="maintenanceForm" class="stacked-form">
+            <div class="form-row">
+              <label>
+                Hostel or block
+                <input name="location" type="text" placeholder="e.g. Hostel B" required />
+              </label>
+              <label>
+                Issue type
+                <select name="issueType" required>
+                  <option value="Carpentry">Carpentry</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Water">Water</option>
+                  <option value="Registration">Registration</option>
+                  <option value="Security">Security</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Room or area
+                <input name="area" type="text" placeholder="e.g. Room 14 stairwell" required />
+              </label>
+              <label>
+                Priority
+                <select name="priority" required>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Issue details
+              <textarea
+                name="details"
+                rows="4"
+                placeholder="Describe what is happening, who is affected, and what needs fixing."
+                required
+              ></textarea>
+            </label>
+
+            <button class="button button-primary" type="submit">Log hostel issue</button>
+            <p class="form-feedback" id="maintenanceFeedback" aria-live="polite"></p>
+          </form>
+        </article>
+
+        <article class="panel queue-panel">
+          <div class="section-heading compact">
+            <p class="eyebrow">Maintenance Queue</p>
+            <h2>Spot the urgent jobs first.</h2>
+            <p>Use the filters to separate emergency issues from routine follow-up work.</p>
+          </div>
+
+          <div class="filter-bar" role="tablist" aria-label="Maintenance filters">
+            <button class="chip is-active" data-maint-filter="all" type="button">All</button>
+            <button class="chip" data-maint-filter="High" type="button">High priority</button>
+            <button class="chip" data-maint-filter="Medium" type="button">Medium priority</button>
+            <button class="chip" data-maint-filter="Low" type="button">Low priority</button>
+          </div>
+
+          <div id="maintenanceList" class="card-stack"></div>
+        </article>
+      </section>
+
+      <section class="bottom-banner">
+        <div>
+          <p class="eyebrow">Built for the student council</p>
+          <h2>One dashboard for arrivals, pickups, claims, and hostel follow-up.</h2>
+        </div>
+        <p>
+          The site gives students a structured way to share what is coming, what is missing, and what needs urgent attention.
+        </p>
+      </section>
+    </main>
+
+    <dialog class="auth-dialog" id="authDialog">
+      <form method="dialog" class="auth-panel" id="authForm">
+        <button class="dialog-close" type="button" id="closeAuth" aria-label="Close">&times;</button>
+        <p class="eyebrow">Account</p>
+        <h2 id="authTitle">Sign in to The Realm</h2>
+        <p class="auth-subtitle">Students register arrivals. Council manages pickups, gate dates, and hostel queues.</p>
+
+        <div class="auth-tabs">
+          <button class="chip is-active" type="button" data-auth-tab="login">Sign in</button>
+          <button class="chip" type="button" data-auth-tab="register">Register</button>
+        </div>
+
+        <div class="stacked-form">
+          <label class="register-only hidden">
+            Full name
+            <input name="name" type="text" placeholder="Your full name" />
+          </label>
+          <label class="register-only hidden">
+            Registration number
+            <input name="regNo" type="text" placeholder="e.g. CSC/23/0142" />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" placeholder="you@school.edu" required />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" placeholder="Your password" required />
+          </label>
+          <label class="register-only hidden">
+            Hostel (optional)
+            <input name="hostel" type="text" placeholder="e.g. Hostel B" />
+          </label>
+          <label class="register-only hidden">
+            Phone (optional)
+            <input name="phone" type="tel" placeholder="e.g. 0803 123 4567" />
+          </label>
+        </div>
+
+        <button class="button button-primary" type="submit" id="authSubmit">Sign in</button>
+        <p class="form-feedback" id="authFeedback" aria-live="polite"></p>
+
+        <p class="demo-hint">
+          Demo accounts: <strong>council@therealm.edu</strong> / council123 &middot;
+          <strong>student@therealm.edu</strong> / student123
+        </p>
+      </form>
+    </dialog>
+  </body>
+</html>
