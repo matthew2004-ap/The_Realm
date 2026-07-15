@@ -15,7 +15,7 @@ A full-stack web app for managing student goods arrivals, pickups, hostel delive
 
 - **Frontend:** HTML, CSS, vanilla JavaScript
 - **Backend:** Node.js + Express
-- **Database:** SQLite (via better-sqlite3)
+- **Database:** JSON file store (no native build tools required)
 - **Auth:** JWT with bcrypt password hashing
 
 ## Quick Start
@@ -64,7 +64,7 @@ Runs the server with auto-reload on file changes.
 The_Realm/
 ├── public/          # Frontend (HTML, CSS, JS)
 ├── server/          # Express API, routes, database
-├── data/            # SQLite database (created on first run)
+├── data/            # JSON database (created on first run)
 ├── package.json
 └── FIRST PROJECT.md # Original project brief
 ```

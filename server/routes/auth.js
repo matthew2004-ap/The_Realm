@@ -17,23 +17,36 @@ router.post("/register", (req, res) => {
     return res.status(400).json({ error: "Invalid role." });
   }
 
-  const existing = db.prepare("SELECT id FROM users WHERE email = ? OR reg_no = ?").get(email.trim(), regNo.trim());
+  const existing = db.findOne("users", (u) => u.email === email.trim().toLowerCase() || u.reg_no === regNo.trim());
   if (existing) {
     return res.status(409).json({ error: "A user with that email or registration number already exists." });
   }
 
-  const id = randomUUID();
-  const passwordHash = bcrypt.hashSync(password, 10);
+  const user = db.insert("users", {
+    id: randomUUID(),
+    name: name.trim(),
+    reg_no: regNo.trim(),
+    email: email.trim().toLowerCase(),
+    password_hash: bcrypt.hashSync(password, 10),
+    role,
+    hostel: hostel?.trim() || null,
+    phone: phone?.trim() || null,
+    created_at: new Date().toISOString(),
+  });
 
-  db.prepare(
-    `INSERT INTO users (id, name, reg_no, email, password_hash, role, hostel, phone)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, name.trim(), regNo.trim(), email.trim().toLowerCase(), passwordHash, role, hostel?.trim() || null, phone?.trim() || null);
+  // Log account creation activity
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "account_created",
+    user_id: user.id,
+    user_name: user.name,
+    description: `${user.name} (${user.reg_no}) created a new ${user.role} account.`,
+    created_at: new Date().toISOString(),
+  });
 
-  const user = db.prepare("SELECT id, name, reg_no, email, role, hostel, phone FROM users WHERE id = ?").get(id);
-  const token = signToken(user);
-
-  res.status(201).json({ token, user });
+  const { password_hash, ...safeUser } = user;
+  const token = signToken(safeUser);
+  res.status(201).json({ token, user: safeUser, welcomeMessage: `Hello ${user.name}! Welcome👋` });
 });
 
 router.post("/login", (req, res) => {
@@ -43,29 +56,24 @@ router.post("/login", (req, res) => {
     return res.status(400).json({ error: "Email and password are required." });
   }
 
-  const user = db
-    .prepare("SELECT id, name, reg_no, email, role, hostel, phone, password_hash FROM users WHERE email = ?")
-    .get(email.trim().toLowerCase());
+  const user = db.findOne("users", (u) => u.email === email.trim().toLowerCase());
 
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     return res.status(401).json({ error: "Invalid email or password." });
   }
 
-  delete user.password_hash;
-  const token = signToken(user);
-  res.json({ token, user });
+  const { password_hash, ...safeUser } = user;
+  const token = signToken(safeUser);
+  res.json({ token, user: safeUser });
 });
 
 router.get("/me", requireAuth, (req, res) => {
-  const user = db
-    .prepare("SELECT id, name, reg_no, email, role, hostel, phone FROM users WHERE id = ?")
-    .get(req.user.id);
-
+  const user = db.get("users", req.user.id);
   if (!user) {
     return res.status(404).json({ error: "User not found." });
   }
-
-  res.json({ user });
+  const { password_hash, ...safeUser } = user;
+  res.json({ user: safeUser });
 });
 
 export default router;

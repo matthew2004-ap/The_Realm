@@ -7,7 +7,7 @@ const router = Router();
 
 router.get("/", requireAuth, (req, res) => {
   const { filter, search } = req.query;
-  let rows = db.prepare("SELECT * FROM lost_items ORDER BY created_at DESC").all();
+  let rows = db.all("lostItems").sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   if (filter === "missing") rows = rows.filter((r) => r.status === "missing");
   if (filter === "found") rows = rows.filter((r) => r.status === "found");
@@ -33,24 +33,50 @@ router.post("/", requireAuth, (req, res) => {
     return res.status(400).json({ error: "All lost item fields are required." });
   }
 
-  const id = randomUUID();
-  db.prepare(
-    `INSERT INTO lost_items (id, user_id, item_name, last_seen, contact, proof, description)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, req.user.id, itemName.trim(), lastSeen.trim(), contact.trim(), proof.trim(), description.trim());
+  const item = db.insert("lostItems", {
+    id: randomUUID(),
+    user_id: req.user.id,
+    item_name: itemName.trim(),
+    last_seen: lastSeen.trim(),
+    contact: contact.trim(),
+    proof: proof.trim(),
+    description: description.trim(),
+    status: "missing",
+    claim_proof: null,
+    created_at: new Date().toISOString(),
+  });
 
-  const item = db.prepare("SELECT * FROM lost_items WHERE id = ?").get(id);
+  // Log lost item report
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "lost_reported",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: item.id,
+    description: `${req.user.name} reported missing item: "${item.item_name}".`,
+    created_at: new Date().toISOString(),
+  });
+
   res.status(201).json({ item });
 });
 
 router.patch("/:id/found", requireAuth, requireCouncil, (req, res) => {
-  const existing = db.prepare("SELECT id FROM lost_items WHERE id = ?").get(req.params.id);
-  if (!existing) {
+  const item = db.update("lostItems", req.params.id, { status: "found" });
+  if (!item) {
     return res.status(404).json({ error: "Item not found." });
   }
 
-  db.prepare("UPDATE lost_items SET status = 'found' WHERE id = ?").run(req.params.id);
-  const item = db.prepare("SELECT * FROM lost_items WHERE id = ?").get(req.params.id);
+  // Log item found
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "item_found",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: item.id,
+    description: `${req.user.name} marked "${item.item_name}" as found.`,
+    created_at: new Date().toISOString(),
+  });
+
   res.json({ item });
 });
 
@@ -60,7 +86,7 @@ router.patch("/:id/claim", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Proof of ownership is required to claim an item." });
   }
 
-  const item = db.prepare("SELECT * FROM lost_items WHERE id = ?").get(req.params.id);
+  const item = db.get("lostItems", req.params.id);
   if (!item) {
     return res.status(404).json({ error: "Item not found." });
   }
@@ -69,20 +95,44 @@ router.patch("/:id/claim", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Only found items can be claimed." });
   }
 
-  db.prepare("UPDATE lost_items SET status = 'claimed', claim_proof = ? WHERE id = ?").run(
-    claimProof.trim(),
-    req.params.id
-  );
+  const updated = db.update("lostItems", req.params.id, {
+    status: "claimed",
+    claim_proof: claimProof.trim(),
+  });
 
-  const updated = db.prepare("SELECT * FROM lost_items WHERE id = ?").get(req.params.id);
+  // Log item claimed
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "item_claimed",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: updated.id,
+    description: `${req.user.name} claimed "${updated.item_name}".`,
+    created_at: new Date().toISOString(),
+  });
+
   res.json({ item: updated });
 });
 
 router.delete("/:id", requireAuth, requireCouncil, (req, res) => {
-  const result = db.prepare("DELETE FROM lost_items WHERE id = ?").run(req.params.id);
-  if (!result.changes) {
+  const item = db.get("lostItems", req.params.id);
+  if (!db.remove("lostItems", req.params.id)) {
     return res.status(404).json({ error: "Item not found." });
   }
+
+  // Log deletion
+  if (item) {
+    db.insert("activities", {
+      id: randomUUID(),
+      type: "lost_deleted",
+      user_id: req.user.id,
+      user_name: req.user.name,
+      related_id: item.id,
+      description: `${req.user.name} removed lost item: "${item.item_name}".`,
+      created_at: new Date().toISOString(),
+    });
+  }
+
   res.json({ ok: true });
 });
 

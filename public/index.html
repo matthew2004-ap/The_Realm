@@ -1,445 +1,198 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="The Realm Campus Operations dashboard for scheduling arrivals, pickup, delivery, lost and found, and hostel maintenance."
-    />
-    <title>The Realm Campus Operations</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script defer src="script.js"></script>
-  </head>
-  <body>
-    <div class="page-glow page-glow-one" aria-hidden="true"></div>
-    <div class="page-glow page-glow-two" aria-hidden="true"></div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="The Realm Campus Operations - Streamline your campus logistics, from goods arrival planning, and hostel maintenance with one professional platform." />
+  <title>The Realm | Campus Operations</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="page-glow page-glow-one" aria-hidden="true"></div>
+  <div class="page-glow page-glow-two" aria-hidden="true"></div>
 
-    <header class="topbar">
-      <a class="brand" href="#top">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span>
+  <!-- Professional Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="navbar-brand">
+        <div class="navbar-brand-mark" aria-hidden="true"></div>
+        <div>
           <strong>The Realm</strong>
           <small>Campus Operations</small>
-        </span>
+        </div>
       </a>
-
-      <nav class="topnav" aria-label="Primary">
-        <a href="#arrivals">Arrivals</a>
-        <a href="#gate-dates">Gate Dates</a>
-        <a href="#lost-found">Lost & Found</a>
-        <a href="#hostel-watch">Hostel Watch</a>
-      </nav>
-
-      <div class="auth-bar" id="authBar">
-        <button class="button button-secondary button-sm" id="loginBtn" type="button">Sign in</button>
+      <div class="navbar-links">
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
       </div>
-    </header>
+      <div class="navbar-auth">
+        <a href="/student-portal.html" class="button button-secondary button-sm">Student Portal</a>
+        <a href="/council-portal.html" class="button button-primary button-sm">Council Portal</a>
+      </div>
+    </div>
+  </nav>
 
-    <main id="top">
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">THE REALM</p>
-          <h1>A calmer way to manage student goods, delivery, and hostel issues.</h1>
-          <p class="hero-text">
-            Plan the arrival of goods before they reach campus, show students what is ready for pickup,
-            offer paid delivery when needed, and keep lost items plus hostel repairs visible in one place.
-          </p>
-
-          <div class="hero-actions">
-            <a class="button button-primary" href="#arrivals">Register arrival</a>
-            <a class="button button-secondary" href="#lost-found">Report missing item</a>
-          </div>
-
-          <div class="hero-tags" aria-label="Key benefits">
-            <span>Arrival planning</span>
-            <span>Pickup alerts</span>
-            <span>Delivery fees</span>
-            <span>Lost items</span>
-            <span>Hostel issues</span>
-          </div>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">THE REALM</p>
+        <h1>Streamline your campus operations</h1>
+        <p class="hero-text">
+          A professional platform for managing student goods, lost & found, and hostel maintenance. Plan arrivals, manage pickups, and keep your campus running smoothly.</p>
+        <div class="hero-actions">
+          <a href="/student-portal.html" class="button button-primary">Student Portal</a>
+          <a href="/council-portal.html" class="button button-secondary">Council Portal</a>
         </div>
+        <div class="hero-tags" aria-label="Key benefits">
+          <span>Arrival Planning</span>
+          <span>Pickup Management</span>
+          <span>Delivery Services</span>
+          <span>Lost & Found</span>
+          <span>Hostel Maintenance</span>
+        </div>
+      </div>
+    </section>
 
-        <aside class="hero-panel">
-          <div class="panel-stat">
-            <span>Incoming goods</span>
-            <strong id="heroIncoming">0</strong>
-          </div>
-          <div class="panel-stat">
-            <span>Ready to collect</span>
-            <strong id="heroReady">0</strong>
-          </div>
-          <div class="panel-stat">
-            <span>Urgent hostel work</span>
-            <strong id="heroUrgent">0</strong>
-          </div>
-          <div class="panel-note" id="gateWindowNote">
-            <p>Official gate window</p>
-            <strong id="gateWindowTitle">Loading schedule...</strong>
-            <span id="gateWindowTime"></span>
-          </div>
-        </aside>
-      </section>
-
-      <section class="stats-grid" aria-label="Live summary">
-        <article class="stat-card">
-          <span>Scheduled arrivals</span>
-          <strong id="statArrivals">0</strong>
-          <small>Goods with confirmed dates and student details.</small>
-        </article>
-        <article class="stat-card">
-          <span>Pending pickup</span>
-          <strong id="statPickup">0</strong>
-          <small>Items ready for students to collect at the office.</small>
-        </article>
-        <article class="stat-card">
-          <span>Delivery requests</span>
-          <strong id="statDelivery">0</strong>
-          <small>Orders that need hostel or door delivery with extra charge.</small>
-        </article>
-        <article class="stat-card">
-          <span>Open reports</span>
-          <strong id="statReports">0</strong>
-          <small>Lost items and hostel maintenance issues waiting on action.</small>
-        </article>
-      </section>
-
-      <section class="content-grid" id="arrivals">
-        <article class="panel form-panel">
-          <div class="section-heading">
-            <p class="eyebrow">Arrival Desk</p>
-            <h2>Register goods before they reach campus.</h2>
-            <p>
-              Students can tell the council when an order is coming, how many items are expected,
-              and whether they want pickup or delivery.
-            </p>
-          </div>
-
-          <form id="arrivalForm" class="stacked-form">
-            <div class="form-row">
-              <label>
-                Student name
-                <input name="studentName" type="text" placeholder="e.g. Adaeze Okafor" required />
-              </label>
-              <label>
-                Registration number
-                <input name="regNo" type="text" placeholder="e.g. UJ/23/1148" required />
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Goods or order
-                <input name="itemName" type="text" placeholder="e.g. Laptop accessories" required />
-              </label>
-              <label>
-                Quantity
-                <input name="quantity" type="number" min="1" value="1" required />
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Expected date
-                <input name="eta" type="date" required />
-              </label>
-              <label>
-                Contact
-                <input name="phone" type="tel" placeholder="e.g. 0803 123 4567" required />
-              </label>
-            </div>
-            <label class="hostel-field hidden" id="hostelField">
-              Hostel for delivery
-              <input name="hostel" type="text" placeholder="e.g. Hostel B, Room 14" />
-            </label>
-            <label>
-              Arrival note
-              <textarea
-                name="note"
-                rows="4"
-                placeholder="Share courier name, tracking info, or anything the council should know."
-                required
-              ></textarea>
-            </label>
-
-            <div class="choice-group" role="radiogroup" aria-label="Pickup or delivery">
-              <label class="choice-card">
-                <input type="radio" name="fulfillment" value="pickup" checked />
-                <span>Pickup at office</span>
-                <small>No extra cost. Student collects goods.</small>
-              </label>
-              <label class="choice-card">
-                <input type="radio" name="fulfillment" value="delivery" />
-                <span>Deliver to hostel</span>
-                <small>Extra charge applies based on destination.</small>
-              </label>
-            </div>
-
-            <button class="button button-primary" type="submit">Save arrival</button>
-            <p class="form-feedback" id="arrivalFeedback" aria-live="polite"></p>
-          </form>
-        </article>
-
-        <article class="panel queue-panel">
-          <div class="section-heading compact">
-            <p class="eyebrow">Council View</p>
-            <h2>See what is coming in and when.</h2>
-            <p>
-              The council can scan scheduled arrivals, sort them by status, and spot delivery jobs quickly.
-            </p>
-          </div>
-
-          <div class="filter-bar" role="tablist" aria-label="Arrival filters">
-            <button class="chip is-active" data-filter="all" type="button">All</button>
-            <button class="chip" data-filter="pickup" type="button">Pickup</button>
-            <button class="chip" data-filter="delivery" type="button">Delivery</button>
-            <button class="chip" data-filter="soon" type="button">Arriving soon</button>
-            <button class="chip" data-filter="ready" type="button">Ready</button>
-          </div>
-
-          <div id="arrivalList" class="card-stack"></div>
-        </article>
-      </section>
-
-      <section class="timeline-panel" id="gate-dates">
+    <!-- Features Section -->
+    <section class="content-grid" id="features">
+      <article class="panel">
         <div class="section-heading">
-          <p class="eyebrow">Official Gate Dates</p>
-          <h2>A fixed schedule keeps the office calm and predictable.</h2>
-          <p>
-            The council can set approved gate dates so students know exactly when goods can be received.
-          </p>
+          <p class="eyebrow">FEATURES</p>
+          <h2>Everything you need in one platform</h2>
+          <p>Comprehensive tools for both students and council members.</p>
         </div>
-
-        <div class="timeline-grid" id="gateDatesList"></div>
-
-        <form id="gateForm" class="stacked-form council-only hidden">
-          <div class="form-row">
-            <label>
-              Day
-              <input name="dayName" type="text" placeholder="e.g. Tuesday" required />
-            </label>
-            <label>
-              Title
-              <input name="title" type="text" placeholder="e.g. Gate intake 8 AM - 1 PM" required />
-            </label>
-          </div>
-          <div class="form-row">
-            <label>
-              Start time
-              <input name="startTime" type="time" required />
-            </label>
-            <label>
-              End time
-              <input name="endTime" type="time" required />
-            </label>
-          </div>
-          <label>
-            Description
-            <textarea name="description" rows="3" placeholder="What happens on this gate day?" required></textarea>
-          </label>
-          <button class="button button-primary" type="submit">Add gate date</button>
-          <p class="form-feedback" id="gateFeedback" aria-live="polite"></p>
-        </form>
-      </section>
-
-      <section class="content-grid" id="lost-found">
-        <article class="panel form-panel">
-          <div class="section-heading">
-            <p class="eyebrow">Lost & Found</p>
-            <h2>Make missing items visible, searchable, and easier to return.</h2>
-            <p>
-              Students can report missing items, and the council can publish found items with a simple proof step.
-            </p>
-          </div>
-
-          <form id="lostForm" class="stacked-form">
-            <div class="form-row">
-              <label>
-                Item name
-                <input name="itemName" type="text" placeholder="e.g. Blue water bottle" required />
-              </label>
-              <label>
-                Last seen at
-                <input name="lastSeen" type="text" placeholder="e.g. Hostel C corridor" required />
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Student contact
-                <input name="contact" type="text" placeholder="Phone or email" required />
-              </label>
-              <label>
-                Proof of ownership
-                <input name="proof" type="text" placeholder="e.g. sticker, engraving, receipt" required />
-              </label>
-            </div>
-            <label>
-              Description
-              <textarea
-                name="description"
-                rows="4"
-                placeholder="Add color, brand, condition, and any detail that helps identify the item."
-                required
-              ></textarea>
-            </label>
-
-            <button class="button button-primary" type="submit">Publish missing item</button>
-            <p class="form-feedback" id="lostFeedback" aria-live="polite"></p>
-          </form>
-        </article>
-
-        <article class="panel queue-panel">
-          <div class="section-heading compact">
-            <p class="eyebrow">Find Board</p>
-            <h2>Students can search what has been found.</h2>
-            <p>Search the board, then verify ownership before a handover is approved.</p>
-          </div>
-
-          <div class="search-row">
-            <input id="lostSearch" type="search" placeholder="Search items, places, or notes" />
-          </div>
-
-          <div class="filter-bar" role="tablist" aria-label="Found item filters">
-            <button class="chip is-active" data-lost-filter="all" type="button">All</button>
-            <button class="chip" data-lost-filter="missing" type="button">Missing</button>
-            <button class="chip" data-lost-filter="found" type="button">Found</button>
-            <button class="chip" data-lost-filter="claimed" type="button">Claimed</button>
-          </div>
-
-          <div id="lostList" class="card-stack"></div>
-        </article>
-      </section>
-
-      <section class="content-grid" id="hostel-watch">
-        <article class="panel form-panel">
-          <div class="section-heading">
-            <p class="eyebrow">Hostel Watch</p>
-            <h2>Keep track of urgent hostel work in one queue.</h2>
-            <p>
-              Carpentry, electrical problems, water leaks, and registration concerns can all be logged and sorted.
-            </p>
-          </div>
-
-          <form id="maintenanceForm" class="stacked-form">
-            <div class="form-row">
-              <label>
-                Hostel or block
-                <input name="location" type="text" placeholder="e.g. Hostel B" required />
-              </label>
-              <label>
-                Issue type
-                <select name="issueType" required>
-                  <option value="Carpentry">Carpentry</option>
-                  <option value="Electrical">Electrical</option>
-                  <option value="Water">Water</option>
-                  <option value="Registration">Registration</option>
-                  <option value="Security">Security</option>
-                </select>
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                Room or area
-                <input name="area" type="text" placeholder="e.g. Room 14 stairwell" required />
-              </label>
-              <label>
-                Priority
-                <select name="priority" required>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
-              </label>
-            </div>
-            <label>
-              Issue details
-              <textarea
-                name="details"
-                rows="4"
-                placeholder="Describe what is happening, who is affected, and what needs fixing."
-                required
-              ></textarea>
-            </label>
-
-            <button class="button button-primary" type="submit">Log hostel issue</button>
-            <p class="form-feedback" id="maintenanceFeedback" aria-live="polite"></p>
-          </form>
-        </article>
-
-        <article class="panel queue-panel">
-          <div class="section-heading compact">
-            <p class="eyebrow">Maintenance Queue</p>
-            <h2>Spot the urgent jobs first.</h2>
-            <p>Use the filters to separate emergency issues from routine follow-up work.</p>
-          </div>
-
-          <div class="filter-bar" role="tablist" aria-label="Maintenance filters">
-            <button class="chip is-active" data-maint-filter="all" type="button">All</button>
-            <button class="chip" data-maint-filter="High" type="button">High priority</button>
-            <button class="chip" data-maint-filter="Medium" type="button">Medium priority</button>
-            <button class="chip" data-maint-filter="Low" type="button">Low priority</button>
-          </div>
-
-          <div id="maintenanceList" class="card-stack"></div>
-        </article>
-      </section>
-
-      <section class="bottom-banner">
-        <div>
-          <p class="eyebrow">Built for the student council</p>
-          <h2>One dashboard for arrivals, pickups, claims, and hostel follow-up.</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 24px;">
+          <article class="stat-card">
+            <span>Goods Arrival Management</span>
+            <strong style="font-size: 2rem; margin: 12px 0;">📦</strong>
+            <small>Plan arrivals with detailed tracking from scheduled to collected/delivered.</small>
+          </article>
+          <article class="stat-card">
+            <span>Official Gate Dates</span>
+            <strong style="font-size: 2rem; margin: 12px 0;">🚪</strong>
+            <small>Set and view official gate intake schedules for smooth operations.</small>
+          </article>
+          <article class="stat-card">
+            <span>Lost & Found</span>
+            <strong style="font-size: 2rem; margin: 12px 0;">🔍</strong>
+            <small>Report, track, and recover lost items with proof of ownership.</small>
+          </article>
+          <article class="stat-card">
+            <span>Hostel Maintenance</span>
+            <strong style="font-size: 2rem; margin: 12px 0;">🛠️</strong>
+            <small>Report and resolve hostel maintenance requests with priority-based queue.</small>
+          </article>
         </div>
-        <p>
-          The site gives students a structured way to share what is coming, what is missing, and what needs urgent attention.
-        </p>
-      </section>
-    </main>
+      </article>
+    </section>
 
-    <dialog class="auth-dialog" id="authDialog">
-      <form method="dialog" class="auth-panel" id="authForm">
-        <button class="dialog-close" type="button" id="closeAuth" aria-label="Close">&times;</button>
-        <p class="eyebrow">Account</p>
-        <h2 id="authTitle">Sign in to The Realm</h2>
-        <p class="auth-subtitle">Students register arrivals. Council manages pickups, gate dates, and hostel queues.</p>
+    <!-- About Section -->
+    <section class="timeline-panel" id="about">
+      <div class="section-heading">
+        <p class="eyebrow">ABOUT</p>
+        <h2>Built for campus efficiency</h2>
+        <p>The Realm was designed to make campus operations seamless and professional.</p>
+      </div>
+      <div class="timeline-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <article class="timeline-card">
+          <span>For Students</span>
+          <strong>Easy & Convenient</strong>
+          <p>Register your arrivals, report lost items, and request maintenance from one simple platform.</p>
+        </article>
+        <article class="timeline-card">
+          <span>For Council</span>
+          <strong>Efficient & Organized</strong>
+          <p>Manage all operations, track statuses, and keep everything organized in one dashboard.</p>
+        </article>
+        <article class="timeline-card">
+          <span>For Campus</span>
+          <strong>Streamlined & Professional</strong>
+          <p>Professional tools designed specifically for campus operations needs.</p>
+        </article>
+      </div>
+    </section>
 
-        <div class="auth-tabs">
-          <button class="chip is-active" type="button" data-auth-tab="login">Sign in</button>
-          <button class="chip" type="button" data-auth-tab="register">Register</button>
+    <!-- Bottom Banner -->
+    <section class="bottom-banner" id="contact">
+      <div>
+        <p class="eyebrow">GET STARTED TODAY</p>
+        <h2>Choose your portal and get started</h2>
+      </div>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <a href="/student-portal.html" class="button button-primary">Student Portal</a>
+        <a href="/council-portal.html" class="button button-secondary">Council Portal</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Professional Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <a href="/" class="navbar-brand">
+            <div class="navbar-brand-mark" aria-hidden="true"></div>
+            <div>
+              <strong>The Realm</strong>
+              <small>Campus Operations</small>
+            </div>
+          </a>
+          <p>Professional campus operations platform for managing student goods, lost and found, and hostel maintenance.</p>
         </div>
-
-        <div class="stacked-form">
-          <label class="register-only hidden">
-            Full name
-            <input name="name" type="text" placeholder="Your full name" />
-          </label>
-          <label class="register-only hidden">
-            Registration number
-            <input name="regNo" type="text" placeholder="e.g. CSC/23/0142" />
-          </label>
-          <label>
-            Email
-            <input name="email" type="email" placeholder="you@school.edu" required />
-          </label>
-          <label>
-            Password
-            <input name="password" type="password" placeholder="Your password" required />
-          </label>
-          <label class="register-only hidden">
-            Hostel (optional)
-            <input name="hostel" type="text" placeholder="e.g. Hostel B" />
-          </label>
-          <label class="register-only hidden">
-            Phone (optional)
-            <input name="phone" type="tel" placeholder="e.g. 0803 123 4567" />
-          </label>
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="/student-portal.html">Student Portal</a></li>
+            <li><a href="/council-portal.html">Council Portal</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+          </ul>
         </div>
-
-        <button class="button button-primary" type="submit" id="authSubmit">Sign in</button>
-        <p class="form-feedback" id="authFeedback" aria-live="polite"></p>
-
-        <p class="demo-hint">
-          Demo accounts: <strong>council@therealm.edu</strong> / council123 &middot;
-          <strong>student@therealm.edu</strong> / student123
-        </p>
-      </form>
-    </dialog>
-  </body>
+        <div class="footer-section">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Policies</a></li>
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:info@therealm.edu">info@therealm.edu</a></li>
+            <li><a href="tel:+1234567890">+1 (234) 567-890</a></li>
+            <li>Campus Main Office</li>
+            <li>Monday - Friday, 8AM - 5PM</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 The Realm Campus Operations. All rights reserved.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="Facebook">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+            </svg>
+          </a>
+          <a href="#" aria-label="Twitter">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+            </svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="18" cy="6" r="1" fill="currentColor"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
 </html>

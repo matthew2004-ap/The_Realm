@@ -10,10 +10,11 @@ import gateRoutes from "./routes/gate-dates.js";
 import lostRoutes from "./routes/lost.js";
 import maintenanceRoutes from "./routes/maintenance.js";
 import statsRoutes from "./routes/stats.js";
+import activitiesRoutes from "./routes/activities.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "..", "public");
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/gate-dates", gateRoutes);
 app.use("/api/lost", lostRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/activities", activitiesRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "The Realm Campus Operations" });

@@ -5,17 +5,17 @@ import { requireAuth, requireCouncil } from "../middleware/auth.js";
 
 const router = Router();
 
+const priorityRank = { High: 3, Medium: 2, Low: 1 };
+
 router.get("/", requireAuth, (req, res) => {
   const { filter } = req.query;
-  let rows = db.prepare("SELECT * FROM maintenance ORDER BY created_at DESC").all();
+  let rows = db.all("maintenance");
 
   if (filter && filter !== "all") {
     rows = rows.filter((r) => r.priority === filter);
   }
 
-  const priorityRank = { High: 3, Medium: 2, Low: 1 };
   rows.sort((a, b) => priorityRank[b.priority] - priorityRank[a.priority]);
-
   res.json({ issues: rows });
 });
 
@@ -30,13 +30,29 @@ router.post("/", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Invalid priority." });
   }
 
-  const id = randomUUID();
-  db.prepare(
-    `INSERT INTO maintenance (id, user_id, location, issue_type, area, priority, details)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, req.user.id, location.trim(), issueType, area.trim(), priority, details.trim());
+  const issue = db.insert("maintenance", {
+    id: randomUUID(),
+    user_id: req.user.id,
+    location: location.trim(),
+    issue_type: issueType,
+    area: area.trim(),
+    priority,
+    details: details.trim(),
+    status: "open",
+    created_at: new Date().toISOString(),
+  });
 
-  const issue = db.prepare("SELECT * FROM maintenance WHERE id = ?").get(id);
+  // Log maintenance report
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "maintenance_reported",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: issue.id,
+    description: `${req.user.name} reported ${issue.priority} priority issue: ${issue.issue_type} at ${issue.location} - ${issue.area}.`,
+    created_at: new Date().toISOString(),
+  });
+
   res.status(201).json({ issue });
 });
 
@@ -46,21 +62,44 @@ router.patch("/:id/status", requireAuth, requireCouncil, (req, res) => {
     return res.status(400).json({ error: "Invalid status." });
   }
 
-  const existing = db.prepare("SELECT id FROM maintenance WHERE id = ?").get(req.params.id);
-  if (!existing) {
+  const issue = db.update("maintenance", req.params.id, { status });
+  if (!issue) {
     return res.status(404).json({ error: "Issue not found." });
   }
 
-  db.prepare("UPDATE maintenance SET status = ? WHERE id = ?").run(status, req.params.id);
-  const issue = db.prepare("SELECT * FROM maintenance WHERE id = ?").get(req.params.id);
+  // Log status update
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "maintenance_updated",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: issue.id,
+    description: `${req.user.name} updated maintenance issue status to: ${status}.`,
+    created_at: new Date().toISOString(),
+  });
+
   res.json({ issue });
 });
 
 router.delete("/:id", requireAuth, requireCouncil, (req, res) => {
-  const result = db.prepare("DELETE FROM maintenance WHERE id = ?").run(req.params.id);
-  if (!result.changes) {
+  const issue = db.get("maintenance", req.params.id);
+  if (!db.remove("maintenance", req.params.id)) {
     return res.status(404).json({ error: "Issue not found." });
   }
+
+  // Log deletion
+  if (issue) {
+    db.insert("activities", {
+      id: randomUUID(),
+      type: "maintenance_deleted",
+      user_id: req.user.id,
+      user_name: req.user.name,
+      related_id: issue.id,
+      description: `${req.user.name} removed maintenance issue.`,
+      created_at: new Date().toISOString(),
+    });
+  }
+
   res.json({ ok: true });
 });
 

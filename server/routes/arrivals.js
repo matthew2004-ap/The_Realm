@@ -12,7 +12,7 @@ function calcDeliveryFee(fulfillment, quantity) {
 
 router.get("/", requireAuth, (req, res) => {
   const { filter } = req.query;
-  let rows = db.prepare("SELECT * FROM arrivals ORDER BY eta ASC, created_at DESC").all();
+  let rows = db.all("arrivals").sort((a, b) => a.eta.localeCompare(b.eta));
 
   if (req.user.role === "student") {
     rows = rows.filter((row) => row.user_id === req.user.id);
@@ -44,30 +44,35 @@ router.post("/", requireAuth, (req, res) => {
     return res.status(400).json({ error: "Fulfillment must be pickup or delivery." });
   }
 
-  const id = randomUUID();
   const qty = Math.max(1, Number(quantity) || 1);
-  const fee = calcDeliveryFee(fulfillment, qty);
-
-  db.prepare(
-    `INSERT INTO arrivals
-      (id, user_id, student_name, reg_no, item_name, quantity, eta, phone, note, fulfillment, hostel, delivery_fee)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    id,
-    req.user.id,
-    studentName.trim(),
-    regNo.trim(),
-    itemName.trim(),
-    qty,
+  const arrival = db.insert("arrivals", {
+    id: randomUUID(),
+    user_id: req.user.id,
+    student_name: studentName.trim(),
+    reg_no: regNo.trim(),
+    item_name: itemName.trim(),
+    quantity: qty,
     eta,
-    phone.trim(),
-    note.trim(),
+    phone: phone.trim(),
+    note: note.trim(),
     fulfillment,
-    hostel?.trim() || null,
-    fee
-  );
+    hostel: hostel?.trim() || null,
+    status: "scheduled",
+    delivery_fee: calcDeliveryFee(fulfillment, qty),
+    created_at: new Date().toISOString(),
+  });
 
-  const arrival = db.prepare("SELECT * FROM arrivals WHERE id = ?").get(id);
+  // Log arrival creation activity
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "arrival_created",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: arrival.id,
+    description: `${req.user.name} scheduled arrival: "${arrival.item_name}" (${arrival.quantity} items) for ${arrival.eta}.`,
+    created_at: new Date().toISOString(),
+  });
+
   res.status(201).json({ arrival });
 });
 
@@ -79,21 +84,44 @@ router.patch("/:id/status", requireAuth, requireCouncil, (req, res) => {
     return res.status(400).json({ error: "Invalid status." });
   }
 
-  const existing = db.prepare("SELECT id FROM arrivals WHERE id = ?").get(req.params.id);
-  if (!existing) {
+  const arrival = db.update("arrivals", req.params.id, { status });
+  if (!arrival) {
     return res.status(404).json({ error: "Arrival not found." });
   }
 
-  db.prepare("UPDATE arrivals SET status = ? WHERE id = ?").run(status, req.params.id);
-  const arrival = db.prepare("SELECT * FROM arrivals WHERE id = ?").get(req.params.id);
+  // Log status update activity
+  db.insert("activities", {
+    id: randomUUID(),
+    type: "arrival_updated",
+    user_id: req.user.id,
+    user_name: req.user.name,
+    related_id: arrival.id,
+    description: `${req.user.name} updated arrival "${arrival.item_name}" status to: ${status}.`,
+    created_at: new Date().toISOString(),
+  });
+
   res.json({ arrival });
 });
 
 router.delete("/:id", requireAuth, requireCouncil, (req, res) => {
-  const result = db.prepare("DELETE FROM arrivals WHERE id = ?").run(req.params.id);
-  if (!result.changes) {
+  const arrival = db.get("arrivals", req.params.id);
+  if (!db.remove("arrivals", req.params.id)) {
     return res.status(404).json({ error: "Arrival not found." });
   }
+
+  // Log deletion activity
+  if (arrival) {
+    db.insert("activities", {
+      id: randomUUID(),
+      type: "arrival_deleted",
+      user_id: req.user.id,
+      user_name: req.user.name,
+      related_id: arrival.id,
+      description: `${req.user.name} removed arrival: "${arrival.item_name}".`,
+      created_at: new Date().toISOString(),
+    });
+  }
+
   res.json({ ok: true });
 });
 
